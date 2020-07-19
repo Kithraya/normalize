@@ -63,13 +63,11 @@ if (!String.prototype.includes) {
 // Reference: http://es5.github.io/#x15.4.4.18
 if (!Array.prototype.forEach) {
 
-  Array.prototype.forEach = function(callback, thisArg) {
+  Array.prototype['forEach'] = function(callback, thisArg) {
 
     var T, k;
 
-    if (this === null) {
-      throw new TypeError(' this is null or not defined');
-    }
+    if (this === null) { throw new TypeError(' this is null or not defined'); }
 
     // 1. Let O be the result of calling toObject() passing the
     // |this| value as the argument.
