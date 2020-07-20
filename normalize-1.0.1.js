@@ -9,10 +9,7 @@ if (!document.head) { document.head = document.getElementsByTagName('head')[0]; 
 (function(w) { 'use strict'; 
 	if (!w.console) { w.console = {} }
 	
-	var con = w.console, 
-	    prop, method, 
-	    dummy = function() {},
-	    properties = ['memory'],
+	var con = w.console, prop, method, dummy = function() {}, properties = ['memory'],
 	    methods = ('assert clear count debug dir dirxml error exception group ' +
 		'groupCollapsed groupEnd info log markTimeline profile profiles profileEnd ' +
 		'show table time timeEnd timeline timelineEnd timeStamp trace warn timeLog trace').split(' ');
@@ -46,7 +43,8 @@ if (!Number['parseInt']) { Number.parseInt = window.parseInt }
 if (!String.prototype['trim']) { String.prototype['trim'] = function () { return this.replace(/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g, ''); }; }
 
 if (!String.prototype['includes']) {
-  String.prototype['includes'] = function(search, start) { 'use strict';
+	
+  String.prototype.includes = function(search, start) { 'use strict';
                                                           
     if (search instanceof RegExp) { throw TypeError('first argument must not be a RegExp'); } 
     if (start === undefined) { start = 0; }                                                      
@@ -60,7 +58,7 @@ if (!String.prototype['includes']) {
 
 if (!Array.prototype['forEach']) {
 
-  Array.prototype['forEach'] = function(callback, thisArg) {
+  Array.prototype.forEach = function(callback, thisArg) {
 
     if (this === null) { throw new TypeError('this is null or not defined'); }
     var T, k;
