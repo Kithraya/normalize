@@ -1,5 +1,5 @@
 /*! Normalize-1.0.6.js: A collection of polyfills to standardize your JavaScript browser environment.
-   Examples: console.log, Array.of(), String.prototype.trim(), Array.forEach(), String.fromCodePoint, etc.
+   Examples: console.log, Array.of(), String.prototype.trim(), Array.forEach(), String.fromCodePoint(), etc.
 
    Yes, we know that you're a genius whiz-kid who writes all your own code from scratch. But sometimes, you'd rather not to. Deadlines, time constraints, or 
    a subject too complicated or time-consuming to understand properly without serious effort, and you'd rather not spend that time, especially if someone else already has.
