@@ -1,8 +1,8 @@
-/* normalize.js: A collection of polyfills to standardize the JavaScript browser environment.
+/* Normalize-1.0.6.js: A collection of polyfills to standardize your JavaScript browser environment.
    Examples: console.log, Array.of(), String.prototype.trim(), Array.forEach(), String.fromCodePoint, etc.
 
    Yes, we know that you're a genius whiz-kid who writes all your own code from scratch. But sometimes, you'd rather not to. Deadlines, time constraints, or 
-   a subject too complicated or time-consuming to understand properly without serious effort, and you'd rather not spend that time if someone else already has.
+   a subject too complicated or time-consuming to understand properly without serious effort, and you'd rather not spend that time, especially if someone else already has.
    So you decide (or are forced to) use a third-party library.
    
    But third-party code can be unreliable. Strange, hard-to-debug errors, third-party dependencies (with dependencies of their own). Many times you end up just 
@@ -11,7 +11,7 @@
    normalize.js will help your third party code not break.
 */
 
-/// --------------------------------------------------- General purpose polyfills ---------------------------------------------------------------
+/// -------------------------------------------------------- General purpose polyfills ---------------------------------------------------------------
 
 // Many properties are read-only, and assigning a value to them if they're already defined returns a TypeError in strict mode,
 // so we have to be careful to only define them if they aren't already defined.
@@ -19,18 +19,8 @@
 "use strict";
 "version 1.0.6";
 
-/* Element isn't defined in IE6/7 and other legacy browsers, and unlike Node, third-party code usually doesn't check for that.
-   We aren't bothering to truly polyfill IE since it's so obsolete, but we do want any boilerplate code that runs to at least not throw any errors
-*/
-
-// Prevent IE from throwing on Element accessors.
-
-if (typeof Element === 'undefined') { window.Element = function(){}; }
-if (typeof CharacterData === 'undefined') { window.CharacterData = function(){}; }
-if (typeof DocumentType === 'undefined') { window.DocumentType = function(){}; }
-
-// if undefined isnt undefined, undefined can be redefined
-(function(u) { if (undefined !== u) {
+// If undefined isnt undefined, undefined can be redefined. | Polyfill undefined for anyone stupid enough to modify this
+;(function(u) { if (undefined !== u) {
 	try {
 		Object.defineProperty(window, 'undefined', { value: u, enumerable: false, writable: false, configurable: false });
 	}
@@ -39,11 +29,21 @@ if (typeof DocumentType === 'undefined') { window.DocumentType = function(){}; }
 	}
 }})();
 
+/* Element isn't defined in IE6/7 and other legacy browsers, and unlike for Node, third-party code usually doesn't check for that.
+   We aren't bothering to truly polyfill IE since it's so obsolete, but we do want any boilerplate code that runs to at least not throw any errors.
+*/
+
+// Prevent IE from throwing on Element accessors.
+if (typeof Element === 'undefined') { window.Element = function(){}; }
+if (typeof CharacterData === 'undefined') { window.CharacterData = function(){}; }
+if (typeof DocumentType === 'undefined') { window.DocumentType = function(){}; }
+
+
 // Console-polyfill. MIT license. | https://github.com/paulmillr/console-polyfill | Makes it safe to do console.log() always.
 
 ;(function(w) { if (!w.console) { w.console = {} }
 	var con = w.console, prop, method, dummy = function(){}, properties = ['memory'];
-	var	methods = ('assert|clear|count|debug|dir|dirxml|error|exception|group|' +
+	var methods = ('assert|clear|count|debug|dir|dirxml|error|exception|group|' +
 	  'groupCollapsed|groupEnd|info|log|markTimeline|profile|profiles|profileEnd|' +
 	  'show|table|time|timeEnd|timeline|timelineEnd|timeStamp|trace|warn|timeLog|trace').split('|');
 
@@ -54,20 +54,17 @@ if (typeof DocumentType === 'undefined') { window.DocumentType = function(){}; }
 })(typeof window === 'undefined' ? this : window);
 
 
-// DOMContentLoaded polyfill 
-
-/*! https://github.com/Kithraya/DOMContentLoaded v1.2.6 | MIT License
-	  If you happen to be using the version on MDN, attribution is not necessary, but appreciated <3
- */
+// DOMContentLoaded Event polyfill | https://developer.mozilla.org/en-US/docs/Web/API/Document/DOMContentLoaded_event
+// https://github.com/Kithraya/DOMContentLoaded v1.2.6 | MIT License (attribution isn't necessary, but appreciated <3)
 
 DOMContentLoaded.version = "1.2.6.5";
 
 function DOMContentLoaded() { "use strict";
 
     var ael = 'addEventListener', rel = 'removeEventListener', aev = 'attachEvent', dev = 'detachEvent';
-    var alreadyRun, funcs = arguments; // for use in idempotent function ready
+    var alreadyRun, funcs = arguments; // for use in the idempotent function ready, defined later.
 
-    function microtime() { return + new Date() }
+    function microtime() { return + new Date() } // new Date().valueOf()
 
     // detect IE <11 via conditional compilation
     var jscript_version = Number( new Function("/*@cc_on return @_jscript_version; @*\/")() ); 
@@ -80,7 +77,7 @@ function DOMContentLoaded() { "use strict";
     if (aev in window) { window[aev]('onload', ready); }
     else { addOnload(ready); }
 
-    // add a function to window.onload queue
+    // to add a function to window.onload queue
     function addOnload(fn) { var prev = window.onload;
 
         if (typeof addOnload.queue !== 'object') { addOnload.queue = [];
@@ -91,7 +88,7 @@ function DOMContentLoaded() { "use strict";
         window.onload = function() { for (var i=0; i < addOnload.queue.length; i++) { addOnload.queue[i]() } };
     }
 
-    // remove a function from window.onload queue
+    // to remove a function from addOnload.queue
     function dequeueOnload(fn, eraseAllMatching) {
         if (typeof addOnload.queue === 'object') {
             for (var i = addOnload.queue.length-1; i >= 0; i--) {
@@ -103,9 +100,11 @@ function DOMContentLoaded() { "use strict";
     }
 
     // idempotent event handler function
-    function ready(time) {
-        if (alreadyRun) {return} alreadyRun = true;
-        var readyTime = microtime(); detach();
+    function ready(time) { 
+	if (alreadyRun) {return} alreadyRun = true;
+        var readyTime = microtime();
+	    
+	detach();
 
         for (var i=0; i < funcs.length; i++) { var func = funcs[i];
 
@@ -117,8 +116,7 @@ function DOMContentLoaded() { "use strict";
                 });
             }
         }
-    }
-			     
+    }			     
 			    
     // remove event handlers
     function detach() {
@@ -143,7 +141,7 @@ function DOMContentLoaded() { "use strict";
 }
 
 
-///	------------------------------------------------------ Element / DOM manipulation polyfills -------------------------------------------------------------
+///------------------------------------------------------- Element / DOM manipulation polyfills -------------------------------------------------------------
 
 Element.prototype.remove || (Element.prototype.remove = function() {
 	if (this.parentNode) { this.parentNode.removeChild(this) }
@@ -183,25 +181,25 @@ function define(obj, prop, val, ewc) {
 
 ///------------------------------------------------------- Number property polyfills --------------------------------------------------------------
 
-	define(Number, 'EPSILON', Math.pow(2, -52));
-	define(Number, 'MAX_SAFE_INTEGER', 9007199254740991);
-	define(Number, 'MIN_SAFE_INTEGER', -9007199254740991);
-	define(Number, 'POSITIVE_INFINITY', Infinity);
-	define(Number, 'NEGATIVE_INFINITY', -Infinity);
-	define(Number, 'MAX_VALUE', 1.7976931348623157e+308);
-	define(Number, 'MIN_VALUE', 5e-324);
-	define(Number, 'NaN', NaN, [0,0,0]); // { ewc: [0, 0, 0]}
+define(Number, 'EPSILON', Math.pow(2, -52));
+define(Number, 'MAX_SAFE_INTEGER', 9007199254740991);
+define(Number, 'MIN_SAFE_INTEGER', -9007199254740991);
+define(Number, 'POSITIVE_INFINITY', Infinity);
+define(Number, 'NEGATIVE_INFINITY', -Infinity);
+define(Number, 'MAX_VALUE', 1.7976931348623157e+308);
+define(Number, 'MIN_VALUE', 5e-324);
+define(Number, 'NaN', NaN, [0,0,0]); // { ewc: [0, 0, 0]}
 
-	if (!Number['isNaN']) { Number.isNaN = function(i) { return typeof i === 'number' && (i !== i); }}
-	if (!Number['isFinite']) { Number.isFinite = function(v) { return typeof v === 'number' && isFinite(v) }}
-	if (!Number['isInteger']) { Number.isInteger = function(v) { return typeof v === 'number' && isFinite(v) && Math.floor(v) === v; }}
-	if (!Number['isSafeInteger']) { Number.isSafeInteger = function(v) { return Number.isInteger(v) && Math.abs(v) <= Number.MAX_SAFE_INTEGER }}
-	if (!Number['parseInt']) { Number.parseInt = parseInt }
-	if (!Number['pareFloat']) { Number.parseFloat = parseFloat }
+if (!Number['isNaN']) { Number.isNaN = function(i) { return typeof i === 'number' && (i !== i); }}
+if (!Number['isFinite']) { Number.isFinite = function(v) { return typeof v === 'number' && isFinite(v) }}
+if (!Number['isInteger']) { Number.isInteger = function(v) { return typeof v === 'number' && isFinite(v) && Math.floor(v) === v; }}
+if (!Number['isSafeInteger']) { Number.isSafeInteger = function(v) { return Number.isInteger(v) && Math.abs(v) <= Number.MAX_SAFE_INTEGER }}
+if (!Number['parseInt']) { Number.parseInt = parseInt }
+if (!Number['pareFloat']) { Number.parseFloat = parseFloat }
 
-	// Number['isNaN'] || ( Number.isNaN = function(i) { return typeof i === 'number' && (i !== i); } );
+// Number['isNaN'] || ( Number.isNaN = function(i) { return typeof i === 'number' && (i !== i); } );
 
-	// if (!Number['isNumeric']) { Number.isNumeric = function(v) { } }
+// if (!Number['isNumeric']) { Number.isNumeric = function(v) { } }
 
 /// ------------------------------------------------------ String property polyfills ---------------------------------------------------------------
 
@@ -271,9 +269,10 @@ if (!String.prototype['codePointAt']) { (function() {
     var defineProperty = (function() {
       // IE 8 only supports `Object.defineProperty` on DOM elements
       try {
-				var object = {}, $defineProperty = Object.defineProperty;
+	var object = {}, $defineProperty = Object.defineProperty;
         var result = $defineProperty(object, object, object) && $defineProperty;
-      } catch(e) {} return result;
+      } catch(e) {}
+      return result;
     }());
     var codePointAt = function(position) {
       if (this == null) {
@@ -317,6 +316,7 @@ if (!String.prototype['codePointAt']) { (function() {
   }());
 }
 
+
 /// --------------------------------------------------------------- Array property polyfills ---------------------------------------------------------------- //
 
 // Array.isArray() polyfill | https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/isArray
@@ -324,6 +324,7 @@ if (!Array['isArray']) { Array.isArray = function(arg) { return Object.prototype
 
 // Array.of() polyfill | https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/of
 if (!Array['of']) { Array.of = function() { return Array.prototype.slice.call(arguments) } }
+
 
 // Array.prototype.forEach() polyfill | Production steps of ECMA-262, Edition 5, 15.4.4.18
 // Reference: http://es5.github.io/#x15.4.4.18
@@ -346,6 +347,7 @@ if (!Array.prototype['forEach']) {
 	  }
   };
 }
+
 
 // Array.prototype.every() polyfill | https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/every
 
@@ -415,11 +417,13 @@ if (!Array.prototype['every']) {
   };
 }
 
+
+// Array.prototype.filter() polyfill | https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/filter
+
 if (!Array.prototype['filter']){
   Array.prototype.filter = function(func, thisArg) {
     'use strict';
-    if ( ! ((typeof func === 'Function' || typeof func === 'function') && this) )
-        throw new TypeError();
+    if ( ! ((typeof func === 'Function' || typeof func === 'function') && this) ) { throw new TypeError() }
 
     var len = this.length >>> 0,
         res = new Array(len), // preallocate array
@@ -454,9 +458,9 @@ if (!Array.prototype['filter']){
   };
 }
 
+
 // Array.prototype.indexOf() polyfill | https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/indexOf
-// Production steps of ECMA-262, Edition 5, 15.4.4.14
-// Reference: http://es5.github.io/#x15.4.4.14
+// Production steps of ECMA-262, Edition 5, 15.4.4.14 | Reference: http://es5.github.io/#x15.4.4.14
 
 if (!Array.prototype['indexOf']) {
   Array.prototype.indexOf = function(searchElement, fromIndex) {
@@ -510,8 +514,8 @@ if (!Array.prototype['indexOf']) {
 
 
 // Array.prototype.lastIndexOf() polyfill | https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/lastIndexOf
-// Production steps of ECMA-262, Edition 5, 15.4.4.15
-// Reference: http://es5.github.io/#x15.4.4.15
+// Production steps of ECMA-262, Edition 5, 15.4.4.15 | Reference: http://es5.github.io/#x15.4.4.15
+
 if (!Array.prototype['lastIndexOf']) {
   Array.prototype.lastIndexOf = function(searchElement /*, fromIndex*/) {
     'use strict';
@@ -556,7 +560,7 @@ if (window.NodeList && !NodeList.prototype.forEach) { NodeList.prototype.forEach
 	this implementation does not support generic iterables as defined in the 6th Edition of ECMA-262.
 */
 
-if (!Array.from) { // array.from may be broken due to having had to remove NFEs
+if (!Array.from) { // TODO: check Array.from still works, due to having had to remove NFEs
     Array.from = (function () {
         var symbolIterator;
         try {
@@ -693,6 +697,7 @@ if (!Array.from) { // array.from may be broken due to having had to remove NFEs
 
 //function isElement(element) { return element instanceof Element || element instanceof HTMLDocument; }
 
+/*
 	var hasTouchScreen = false;
 if ("maxTouchPoints" in navigator) {
     hasTouchScreen = (navigator.maxTouchPoints > 0);
@@ -714,3 +719,5 @@ if ("maxTouchPoints" in navigator) {
     }
 }
 if (hasTouchScreen) {}
+
+*/
