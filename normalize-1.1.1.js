@@ -54,15 +54,15 @@
 
 	} else
 	if (context === 'node') {
-       module.exports = factory( globalThis , context );
+       module.exports = new factory( globalThis , context ); // 
     } else
 	{
-		factory( globalThis, context );
+		globalThis['normalize'] = new factory( globalThis, context );
 	}
 
 })( (function() {
 
-	// # A globalThis polyfill | # | Adapted from https://mathiasbynens.be/notes/globalthis
+	// A globalThis polyfill | # | Adapted from https://mathiasbynens.be/notes/globalthis
 	
 	if (typeof window !== 'undefined' && window && window.window === window) { return window } // all browsers
 	else { // webworkers, or server-side Javascript, like Node.js
@@ -87,7 +87,7 @@
 	// return the specific JavaScript execution context, such as window, WebWorkers, Node.js, etc.
 	
 	if (typeof window !== 'undefined' && window && window.window === window) { return 'window' } // all browsers
-	if (typeof self !== 'undefined' && self &&
+	if (typeof self !== 'undefined' && self && 
 		typeof WorkerGlobalScope !== 'undefined' && self instanceof WorkerGlobalScope
 	) {
 		return 'worker';
@@ -100,7 +100,7 @@
 
 })(), function( window, context, undefined ) {
 
-	//"use strict";
+	// "use strict";
 	// Console-polyfill. MIT license | https://github.com/paulmillr/console-polyfill | Makes it safe to do console.log() always.
 	;(function(w) {
 
@@ -201,9 +201,10 @@
 
 	var supportsDescriptors = _supports_['descriptors'];
 
-	var read_only = { enumerable: true, configurable: true };
-	var non_enum = { configurable: true, writable: true }, cw = non_enum, NON_ENUM = non_enum;
-	var as_const = { enumerable: false, configurable: false, writable: false }; // default
+	// Object.defineProperty() options, for use in `define`
+	var READ_ONLY = { enumerable: true, configurable: true, writable: false };
+	var NON_ENUM = { configurable: true, writable: true, enumerable: false };
+	var AS_CONST = { enumerable: false, configurable: false, writable: false }; // the default
 
 	var $Array = Array, $Object = Object, $Function = Function, $String = String, $Number = Number;
 	var max = Math.max, min = Math.min, floor = Math.floor, abs = Math.abs;
@@ -212,8 +213,8 @@
 	var FunctionPrototype = Function.prototype;
 	var StringPrototype = String.prototype;
 	var NumberPrototype = Number.prototype;
-	var array_slice = Array.prototype.slice;
-	var array_splice = Array.prototype.splice;
+	var array_slice = ArrayPrototype.slice;
+	var array_splice = ArrayPrototype.splice;
 	var array_push = ArrayPrototype.push;
 	var array_unshift = ArrayPrototype.unshift;
 	var array_concat = ArrayPrototype.concat;
@@ -229,10 +230,11 @@
 	var NumberPrototypeToString = NumberPrototype.toString;
 	var FunctionPrototypeToString = FunctionPrototype.toString;
 	var ObjectPrototypeToString = ObjectPrototype.toString;
+	var ToPrototypeString = function(value) { return ObjectPrototypeToString.call(value) };
 
 	var isActualNaN = Number.isNaN || function isActualNaN(x) { return x !== x };
 	
-	var isArray = Array.isArray || function isArray(obj) { return ObjectPrototypeToString(obj)==='[object Array]' };
+	var isArray = Array.isArray || function isArray(obj) { return ObjectPrototypeToString.call(obj)==='[object Array]' };
 
 	var is_default_IE11 = !!window.msCrypto;
 
@@ -385,7 +387,7 @@
 	}
 	
 	function defineProperties(obj, map, forceAssign) {
-		for (var name in map) {
+		for (var name in map) { // use `define` instead, to avoid the IE<9 enumeration bug
 			if ( hasOwnProp(name, map) ) {
 				define( obj, name, map[name], { configurable: true, writable: true }, forceAssign );
 			}
@@ -466,7 +468,7 @@
 		})() : ObjectPrototypeToString.call(value) === '[object String]';
 	}
 
-	// ToInteger | ecma-262/11.0
+	// ToInteger | ECMA-262/11.0
 	function ToInteger(num) {
 
 		// Unary operator throws TypeError on BigInt, and Symbol primitives
@@ -482,7 +484,7 @@
 	}
 
 	// ToObject
-	function ToObject(o, CustomErrorMsg) {
+	function ToObject(o, CustomErrorMsg ) {
 		if (o == null) { throw new TypeError( CustomErrorMsg || "argument is null or not defined!" ) }
 		return Object(o);
 	}
@@ -504,6 +506,7 @@
 
 	// ToUint32
 	function ToUint32(x) { return x >>> 0 }
+	
 	// ToNumber
 	function ToNumber(n) { return +n }
 
@@ -740,7 +743,7 @@
 		+ '\u2029\uFEFF';
 
 	// String.prototype.trim() polyfix | ES5-shim | Dependency
-	(function() {
+	;(function() {
 		
 		var zeroWidth = '\u200b';
 		var wsRegexChars = '[' + ws + ']';
@@ -783,7 +786,7 @@
 	// comment the following line if you do not prefer this.
 	define( window, 'isCallable', isCallable, NON_ENUM );
 
-	// define( window, 'isFinite', function isFinite(v) {}, non_enum );
+	// define( window, 'isFinite', function isFinite(v) {}, NON_ENUM );
 
 	// window.isNaN() polyfill | MDN | https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/isNaN
 	define( window, 'isNaN', function isNaN(v) { return Number(v) !== Number(v) }, NON_ENUM );
@@ -2214,7 +2217,7 @@
 			return x !== x && y !== y;
 		}
 	}, NON_ENUM );
-
+	
 	// Object.keys() polyfix | ES5-shim | https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/keys
 	define( Object, 'keys', function keys(object) {
 
@@ -2853,7 +2856,7 @@
     // http://es5.github.com/#x15.9.5.44
     // This function provides a String representation of a Date object for use by
     // JSON.stringify (15.12.3).
-    var dateToJSONIsSupported = !!(function () {
+    var dateToJSONIsSupported = !!(function () {	
         try {
             return Date.prototype.toJSON
                 && new Date(NaN).toJSON() === null
@@ -3338,7 +3341,7 @@
 		  return ('getElementsByTagName' in document) ?
 			  document['getElementsByTagName']('head')[0] :
 			  document.all[1]
-	})(), read_only );
+	})(), READ_ONLY );
 
 	if (typeof Element === 'undefined') { Element = function() {} }
 
